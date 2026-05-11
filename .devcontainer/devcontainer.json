@@ -1,0 +1,19 @@
+{
+  "name": "Grid Dynamics Code Challenge Env",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "chat.disableAIFeatures": true,
+        "github.copilot.enable": { "*": false }
+      },
+      "extensions": [
+        "ms-python.python",
+        "vscjava.vscode-java-pack",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "postCreateCommand": "sudo sh -c 'echo \"127.0.0.1 api.openai.com api.anthropic.com api.codeium.com api.tabnine.com\" >> /etc/hosts' && echo 'Environment ready. You may now use the terminal to run tests.'"
+}

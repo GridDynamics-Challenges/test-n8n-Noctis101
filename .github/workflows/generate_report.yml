@@ -1,0 +1,45 @@
+name: Generate Final Transparency Report
+
+on:
+  pull_request:
+    types:
+      - closed
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  grade_assessment:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install google-generativeai requests
+
+      - name: Run Gemini Auto-Grader
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: python .github/scripts/auto_grader.py
+
+      - name: Commit Transparency Report to Repository
+        run: |
+          git config user.name "Grid Dynamics Auto-Grader"
+          git config user.email "dbrooks@griddynamics.com"
+          git add QUALITY_REPORT.md
+          git commit -m "docs: Release final AI quality and transparency report"
+          git pull --rebase origin main 
+          git push origin main

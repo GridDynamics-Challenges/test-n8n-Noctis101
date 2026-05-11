@@ -1,0 +1,2 @@
+[pr_reviewer]
+extra_instructions = "You are an automated grader. You MUST base your evaluation strictly on the rules and constraints defined in the `best_practices.md` file located in the root of this repository. Output your review in clean Markdown format."

@@ -1,0 +1,11 @@
+{
+  "name": "zero-hour-challenge",
+  "version": "1.0.0",
+  "description": "Grid Dynamics Code Challenge",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}

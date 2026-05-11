@@ -1,0 +1,139 @@
+name: Operation Zero Hour - Autograder
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  tamper_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Detect tampered files
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            tampered:
+              - '.github/workflows/**'
+              - 'best_practices.md'
+              - '.pr_agent.toml'
+              - '**/*test*.py'
+              - '**/*Test.java'
+              - '**/*.test.js'
+      - name: Enforce Protections
+        if: steps.filter.outputs.tampered == 'true'
+        run: |
+          echo "ERROR: You have modified a protected grading or test file. This is not allowed."
+          exit 1
+          
+  detect_language:
+    needs: tamper_check
+    runs-on: ubuntu-latest
+    outputs:
+      python: ${{ steps.filter.outputs.python }}
+      java: ${{ steps.filter.outputs.java }}
+      jsts: ${{ steps.filter.outputs.jsts }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Path Filter
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            python:
+              - 'Python/**'
+            java:
+              - 'Java/**'
+            jsts:
+              - 'JS_TS/**'
+              
+  evaluate_correctness:
+    needs: detect_language
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log Submission Timestamp
+        run: |
+          echo "Commit Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo "Evaluating correctness gateway..."
+
+      # ==========================================
+      # PYTHON PIPELINE
+      # ==========================================
+      - name: Set up Python
+        if: needs.detect_language.outputs.python == 'true'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install PyTest
+        if: needs.detect_language.outputs.python == 'true'
+        run: pip install pytest
+
+      - name: Python Level 1 Gateway (1.0 Points)
+        if: needs.detect_language.outputs.python == 'true'
+        run: pytest Python/Level_1/test_level1.py
+
+      - name: Python Level 2 Gateway (2.0 Points)
+        if: needs.detect_language.outputs.python == 'true'
+        run: pytest Python/Level_2/test_level2.py
+
+      - name: Python Level 3 Gateway (3.0 Points)
+        if: needs.detect_language.outputs.python == 'true'
+        run: pytest Python/Level_3/test_level3.py
+
+      # ==========================================
+      # JAVA PIPELINE
+      # ==========================================
+      - name: Set up Java
+        if: needs.detect_language.outputs.java == 'true'
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Java Level 1 Gateway (1.0 Points)
+        if: needs.detect_language.outputs.java == 'true'
+        run: cd Java && mvn test -Dtest=Level1Test
+
+      - name: Java Level 2 Gateway (2.0 Points)
+        if: needs.detect_language.outputs.java == 'true'
+        run: cd Java && mvn test -Dtest=Level2Test
+
+      - name: Java Level 3 Gateway (3.0 Points)
+        if: needs.detect_language.outputs.java == 'true'
+        run: cd Java && mvn test -Dtest=Level3Test
+
+      # ==========================================
+      # JS/TS PIPELINE
+      # ==========================================
+      - name: Set up Node.js
+        if: needs.detect_language.outputs.jsts == 'true'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'JS_TS/package.json'
+
+      - name: Install Jest
+        if: needs.detect_language.outputs.jsts == 'true'
+        run: cd JS_TS && npm install
+
+      - name: JS/TS Level 1 Gateway (1.0 Points)
+        if: needs.detect_language.outputs.jsts == 'true'
+        run: cd JS_TS && npm test Level_1/level1.test.js
+
+      - name: JS/TS Level 2 Gateway (2.0 Points)
+        if: needs.detect_language.outputs.jsts == 'true'
+        run: cd JS_TS && npm test Level_2/level2.test.js
+
+      - name: JS/TS Level 3 Gateway (3.0 Points)
+        if: needs.detect_language.outputs.jsts == 'true'
+        run: cd JS_TS && npm test Level_3/level3.test.js
