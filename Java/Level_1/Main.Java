@@ -11,9 +11,11 @@ public class Main {
      * Returns a new array with all negative numbers removed.
      */
     public static int[] cleanData(int[] arr) {
-        // Write your logic here
-        
-        return new int[0]; 
+        if (arr == null) return new int[0];
+
+        return Arrays.stream(arr)
+                     .filter(altitude -> altitude >= 0)
+                     .toArray();
     }
 
     /**
@@ -21,8 +23,8 @@ public class Main {
      * Returns the highest altitude.
      */
     public static int findPeak(int[] arr) {
-        // Write your logic here
-        
-        return 0;
+        if (arr == null || arr.length == 0) return 0;
+
+        return Arrays.stream(arr).max().orElse(0);
     }
 }
